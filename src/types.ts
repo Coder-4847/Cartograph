@@ -31,6 +31,8 @@ export interface RepoData {
   /** [from, to] pairs of repo-relative file paths. */
   deps: [string, string][];
   depsAnalyzed: number;
+  /** Human-readable caveats (partial churn, rate limits...) shown in the HUD. */
+  notes: string[];
   sample?: boolean;
   fetchedAt: number;
 }
@@ -55,13 +57,14 @@ export type FetchErrorKind =
   | 'empty'
   | 'unknown';
 
+// Plain fields (no parameter properties) so Node can run this file type-stripped in scripts/.
 export class FetchError extends Error {
-  constructor(
-    public kind: FetchErrorKind,
-    message: string,
-    public resetAt?: number,
-  ) {
+  kind: FetchErrorKind;
+  resetAt?: number;
+  constructor(kind: FetchErrorKind, message: string, resetAt?: number) {
     super(message);
     this.name = 'FetchError';
+    this.kind = kind;
+    this.resetAt = resetAt;
   }
 }

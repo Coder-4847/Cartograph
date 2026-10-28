@@ -94,7 +94,7 @@ const FRAG = /* glsl */ `
 
     // hotspot pulse
     float wave = uPulseSpeed > 0.0 ? 0.5 + 0.5 * sin(uTime * uPulseSpeed + vPhase * 6.2831) : 0.75;
-    col += uAccent * vHot * uHot * wave * (0.25 + 0.55 * smoothstep(0.4, 1.0, n.y) + 0.2 * side);
+    col += uAccent * vHot * uHot * wave * (0.4 + 0.8 * smoothstep(0.4, 1.0, n.y) + 0.35 * side);
 
     gl_FragColor = vec4(col, 1.0);
     #include <colorspace_fragment>

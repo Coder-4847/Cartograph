@@ -3,18 +3,131 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <title>Cartograph — your repo, as a city</title>
+    <title>Cartograph — turn any GitHub repo into a 3D city</title>
+    <meta name="description" content="Paste a public GitHub repository and explore it as an interactive 3D city: folders are districts, files are buildings, imports are roads. Runs entirely in your browser." />
+    <meta name="theme-color" content="#07080a" />
+    <link rel="canonical" href="%VITE_SITE_URL%" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="preload" as="font" type="font/woff2" crossorigin href="/node_modules/@fontsource-variable/inter/files/inter-latin-wght-normal.woff2" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Cartograph" />
+    <meta property="og:title" content="Cartograph — your repo, as a city" />
+    <meta property="og:description" content="Folders are districts, files are buildings, imports are roads. Explore any public GitHub repo in 3D." />
+    <meta property="og:url" content="%VITE_SITE_URL%" />
+    <meta property="og:image" content="%VITE_SITE_URL%og.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="A dark 3D city of glowing buildings with the headline “Your repo, as a city.”" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Cartograph — your repo, as a city" />
+    <meta name="twitter:description" content="Folders are districts, files are buildings, imports are roads. Explore any public GitHub repo in 3D." />
+    <meta name="twitter:image" content="%VITE_SITE_URL%og.png" />
   </head>
   <body>
-    <canvas id="stage" aria-hidden="true"></canvas>
-    <main id="app">
-      <form id="repo-form" class="launcher" autocomplete="off">
-        <input id="repo-input" name="repo" type="text" placeholder="github.com/owner/repo" spellcheck="false" aria-label="GitHub repository URL" />
-        <button type="submit" class="btn btn-primary">Visualize</button>
-        <button type="button" id="demo-btn" class="btn">Try a demo</button>
-      </form>
-    </main>
+    <canvas id="stage"></canvas>
+    <div class="veil" aria-hidden="true"></div>
+
+    <div id="landing">
+      <header class="nav">
+        <a class="brand" href="#top" aria-label="Cartograph home"><span class="brand-mark" id="brand-mark" aria-hidden="true"></span>Cartograph</a>
+        <nav class="nav-links" aria-label="Sections">
+          <a href="#how">How it works</a>
+          <a href="#features">Features</a>
+          <a href="#hotspots">Hotspots</a>
+          <a href="https://github.com/coder-4847/cartograph" target="_blank" rel="noopener noreferrer">GitHub</a>
+        </nav>
+      </header>
+
+      <main>
+        <section class="hero" id="top">
+          <div class="hero-copy">
+            <p class="eyebrow"><i class="dot"></i>Open source · Runs in your browser</p>
+            <h1>Your repo,<br />as a city.</h1>
+            <p class="lede">Folders become districts. Files become buildings, taller when they’re bigger and brighter when they change often. Imports become roads. Paste any public GitHub repository and fly through it.</p>
+            <form class="repo-form" data-repo-form autocomplete="off" novalidate>
+              <label class="sr-only" for="repo-input">GitHub repository URL</label>
+              <input id="repo-input" class="repo-input" name="repo" type="text" inputmode="url" placeholder="github.com/owner/repo" spellcheck="false" autocapitalize="none" />
+              <button type="submit" class="btn btn-primary">Visualize</button>
+              <button type="button" class="btn" data-demo>Try a demo</button>
+            </form>
+            <p class="form-error" data-form-error role="alert" hidden></p>
+            <p class="try">Or try <button type="button" class="chip-btn" data-repo="vitejs/vite">vitejs/vite</button><button type="button" class="chip-btn" data-repo="pmndrs/zustand">pmndrs/zustand</button><button type="button" class="chip-btn" data-repo="expressjs/express">expressjs/express</button></p>
+          </div>
+          <a class="scroll-cue" href="#how" aria-label="Scroll to how it works"><span></span></a>
+        </section>
+
+        <section class="section" id="how" aria-labelledby="how-h">
+          <p class="eyebrow">How it works</p>
+          <h2 id="how-h">Three steps. No account, no backend.</h2>
+          <ol class="steps">
+            <li class="step">
+              <div class="art art-type" aria-hidden="true"><span class="type-box"><span class="type-text">github.com/vitejs/vite</span><i class="caret"></i></span></div>
+              <span class="step-n">01</span>
+              <h3>Paste a repository</h3>
+              <p>One call to the GitHub tree API returns every path and size. A few commit lookups add recent activity.</p>
+            </li>
+            <li class="step">
+              <div class="art art-build" aria-hidden="true"><b></b><b></b><b></b><b></b><b></b><b></b></div>
+              <span class="step-n">02</span>
+              <h3>We map it</h3>
+              <p>A squarified treemap nests folders into districts. Import statements are parsed from source files into dependency roads.</p>
+            </li>
+            <li class="step">
+              <div class="art art-orbit" aria-hidden="true"><svg viewBox="0 0 120 80"><ellipse cx="60" cy="42" rx="46" ry="16"/><circle class="orb" r="4" cx="14" cy="42"/></svg></div>
+              <span class="step-n">03</span>
+              <h3>Explore it</h3>
+              <p>Orbit, zoom and fly between districts. Hold a building to open its details and jump straight to the file on GitHub.</p>
+            </li>
+          </ol>
+        </section>
+
+        <section class="section" id="features" aria-labelledby="feat-h">
+          <p class="eyebrow">Features</p>
+          <h2 id="feat-h">Built to be explored, not just looked at.</h2>
+          <div class="cards">
+            <article class="card"><div class="art art-treemap" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div><h3>Treemap districts</h3><p>Folders nest into neighbourhoods using a squarified layout, so large areas stay readable.</p></article>
+            <article class="card"><div class="art art-heat" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><h3>Churn heatmap</h3><p>Colour follows how often a file changed across the last 30 commits.</p></article>
+            <article class="card"><div class="art art-roads" aria-hidden="true"><svg viewBox="0 0 160 80"><path class="road" d="M20 62 Q 80 -14 140 62"/><circle cx="20" cy="62" r="4"/><circle cx="140" cy="62" r="4"/></svg></div><h3>Dependency roads</h3><p>Animated arcs show what a building imports and who imports it, only for what you point at.</p></article>
+            <article class="card"><div class="art art-press" aria-hidden="true"><svg viewBox="0 0 80 80"><circle class="r-bg" cx="40" cy="40" r="24"/><circle class="r-fg" cx="40" cy="40" r="24" transform="rotate(-90 40 40)"/><circle class="finger" cx="40" cy="40" r="7"/></svg></div><h3>Hold to open</h3><p>A progress ring fills around your finger or cursor; a haptic tick confirms the long-press.</p></article>
+            <article class="card"><div class="art art-search" aria-hidden="true"><span class="s-box"><kbd>⌘</kbd><kbd>K</kbd><span class="s-text">config</span></span><span class="s-row"></span><span class="s-row"></span></div><h3>Instant search</h3><p>Press <kbd>⌘</kbd><kbd>K</kbd> to find any file or folder and fly the camera straight to it.</p></article>
+            <article class="card"><div class="art art-local" aria-hidden="true"><i></i><i></i><i></i><i class="pkt"></i></div><h3>Private by design</h3><p>Everything runs client-side. Responses are cached in your browser; an optional token never leaves it.</p></article>
+          </div>
+        </section>
+
+        <section class="hot" id="hotspots" aria-labelledby="hot-h">
+          <div class="hot-stage">
+            <div class="hot-copy">
+              <p class="eyebrow">Hotspot mode</p>
+              <h2 id="hot-h">Find the files that hurt.</h2>
+              <div class="caps">
+                <div class="cap" data-cap="0"><h3>Overview</h3><p>Height is file size. A faint tint shows where recent commits landed.</p></div>
+                <div class="cap" data-cap="1"><h3>Churn heatmap</h3><p>Every building recolours by how often it changed. Cold slate to bright accent.</p></div>
+                <div class="cap" data-cap="2"><h3>Hotspots</h3><p>Everything recedes except the files that are both large and constantly changing. They pulse.</p></div>
+              </div>
+              <div class="dots" aria-hidden="true"><i></i><i></i><i></i></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="section cta" aria-labelledby="cta-h">
+          <h2 id="cta-h">Map your own codebase.</h2>
+          <form class="repo-form" data-repo-form autocomplete="off" novalidate>
+            <label class="sr-only" for="repo-input-2">GitHub repository URL</label>
+            <input id="repo-input-2" class="repo-input" name="repo" type="text" inputmode="url" placeholder="github.com/owner/repo" spellcheck="false" autocapitalize="none" />
+            <button type="submit" class="btn btn-primary">Visualize</button>
+            <button type="button" class="btn" data-demo>Try a demo</button>
+          </form>
+          <p class="form-error" data-form-error role="alert" hidden></p>
+        </section>
+      </main>
+
+      <footer class="footer">
+        <span>Cartograph · MIT</span>
+        <span>Public repos only · 60 requests/hour without a token</span>
+        <a href="https://github.com/coder-4847/cartograph" target="_blank" rel="noopener noreferrer">Source on GitHub</a>
+      </footer>
+    </div>
+
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

@@ -55,26 +55,6 @@ button, input { font: inherit; color: inherit; }
 .btn-primary { background: var(--text); color: #0a0b0d; border-color: transparent; font-weight: 550; }
 .btn-primary:hover { background: #fff; }
 
-.launcher {
-  position: fixed;
-  top: max(16px, env(safe-area-inset-top));
-  left: 50%;
-  transform: translateX(-50%);
-  width: min(640px, calc(100% - 32px));
-  display: flex;
-  gap: 8px;
-  z-index: 5;
-}
-.launcher input {
-  flex: 1;
-  min-width: 0;
-  height: 40px;
-  padding: 0 14px;
-  border-radius: 10px;
-  border: 1px solid var(--line-strong);
-  background: rgba(13, 15, 18, 0.8);
-  backdrop-filter: blur(12px);
-}
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
@@ -95,6 +75,9 @@ button, input { font: inherit; color: inherit; }
   transition: opacity 0.4s var(--ease);
 }
 .loader.on { opacity: 1; pointer-events: auto; }
+.loader.clear { background: radial-gradient(40% 30% at 50% 50%, rgba(7, 8, 10, 0.5), transparent); pointer-events: none; }
+.loader.clear .loader-sky { display: none; }
+.loader.clear .loader-msg { text-shadow: 0 2px 16px var(--bg); }
 .loader-sky { display: flex; align-items: flex-end; gap: 6px; height: 90px; }
 .loader-sky span {
   width: 14px;

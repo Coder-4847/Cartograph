@@ -1,14 +1,20 @@
 import './styles.css';
-import { App } from './app.ts';
+import './landing/landing.css';
+import { gsap, reducedMotion } from './motion.ts';
+import { logoMarkup } from './landing/logo.ts';
 
-const app = new App(document.getElementById('stage') as HTMLCanvasElement);
-(window as unknown as { __app: App }).__app = app;
+// The landing copy is static HTML, so it paints immediately. Only the logo needs JS up front.
+const mark = document.getElementById('brand-mark');
+if (mark) {
+  mark.innerHTML = logoMarkup({ size: 30, animate: !reducedMotion() });
+  if (!reducedMotion()) {
+    const faces = mark.querySelectorAll('.lf');
+    gsap
+      .timeline({ delay: 0.15 })
+      .to(faces, { strokeDashoffset: 0, duration: 0.8, ease: 'power2.inOut', stagger: { each: 0.03 } })
+      .to(faces, { fillOpacity: 1, duration: 0.5, ease: 'power1.out', stagger: { each: 0.02 } }, '-=0.55');
+  }
+}
 
-const form = document.getElementById('repo-form') as HTMLFormElement;
-const input = document.getElementById('repo-input') as HTMLInputElement;
-form.addEventListener('submit', (e) => {
-  e.preventDefault();
-  void app.open(input.value);
-});
-document.getElementById('demo-btn')!.addEventListener('click', () => void app.openDemo());
-void app.openDemo();
+// Boot the 3D scene after the first frames so text and fonts win the LCP race.
+requestAnimationFrame(() => requestAnimationFrame(() => void import('./boot.ts')));

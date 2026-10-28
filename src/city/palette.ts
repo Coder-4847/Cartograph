@@ -41,8 +41,8 @@ const KIND_COLOR: Record<FileKind, THREE.Color> = {
 
 /** Single-hue heat ramp: cold slate -> accent -> near white. */
 const RAMP: [number, THREE.Color][] = [
-  [0, C('#1b2030')],
-  [0.35, C('#3a43a8')],
+  [0, C('#262d42')],
+  [0.35, C('#434cb8')],
   [0.7, ACCENT],
   [1, C('#f2f3ff')],
 ];

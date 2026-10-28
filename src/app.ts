@@ -21,6 +21,20 @@ import { Shortcuts } from './ui/shortcuts.ts';
 import { toast } from './ui/toast.ts';
 import { Tooltip } from './ui/tooltip.ts';
 
+export interface PresentOpts {
+  /** Reshape the buildings already on screen instead of rising from the ground. */
+  morph?: boolean;
+  /** Awaited after data arrives and before the city changes (landing: let the camera dive finish). */
+  beforePresent?: () => Promise<void>;
+  loader?: 'solid' | 'clear';
+}
+
+/** Routes requests to the landing page when one is mounted; otherwise opens directly. */
+export interface Router {
+  go(input: string | RepoRef | null): void;
+  home(): void;
+}
+
 /** Wires data -> city -> UI. The landing page drives it through `open` / `openDemo`. */
 export class App {
   readonly world: World;
@@ -37,6 +51,7 @@ export class App {
   readonly search: Search;
   readonly minimap: Minimap;
   readonly crumbs: Breadcrumb;
+  router: Router | null = null;
   private depsAbort: AbortController | null = null;
   private job = 0;
   private active = false;
@@ -52,7 +67,7 @@ export class App {
     this.rig = new Rig(this.world);
     this.loader = new Loader(document.body);
     this.errors = new ErrorCard(document.body);
-    this.hud = new Hud({ settings: () => this.settings.open(), help: () => this.shortcuts.toggle() });
+    this.hud = new Hud({ settings: () => this.settings.open(), help: () => this.shortcuts.toggle(), home: () => this.router?.home() });
     this.crumbs = new Breadcrumb((d) => this.pickCrumb(d));
     this.hud.info.append(this.crumbs.el);
     this.modes = new ModeControl((m) => {
@@ -92,55 +107,89 @@ export class App {
   // ------------------------------------------------------------------- loading
 
   /** Fetch a repository from GitHub and show its city. */
-  async open(input: string | RepoRef): Promise<boolean> {
+  async open(input: string | RepoRef, opts: PresentOpts = {}): Promise<boolean> {
     const job = ++this.job;
     this.errors.hide();
-    this.loader.show('Resolving repository…');
+    this.loader.show('Resolving repository…', opts.loader);
     try {
       const ref = typeof input === 'string' ? parseRepo(input) : input;
       const data = await loadRepo(ref, { onProgress: (p) => job === this.job && this.loader.update(p) });
       if (job !== this.job) return false;
-      this.present(data);
+      await opts.beforePresent?.();
+      if (job !== this.job) return false;
+      this.present(data, opts);
       void this.mapDeps(data, job);
       return true;
     } catch (e) {
       if (job !== this.job) return false;
       this.loader.hide();
       this.errors.show(e instanceof FetchError ? e : new FetchError('unknown', 'Something went wrong.'), {
-        retry: () => void this.open(input),
-        demo: () => void this.openDemo(),
+        retry: () => this.go(input),
+        demo: () => this.go(null),
         settings: () => this.settings.open(),
       });
       return false;
     }
   }
 
-  async openDemo(): Promise<void> {
+  async openDemo(opts: PresentOpts = {}): Promise<boolean> {
     const job = ++this.job;
     this.errors.hide();
+    if (opts.loader === 'clear') this.loader.show('Opening the sample city…', 'clear');
     const data = await loadSample();
-    if (job !== this.job) return;
-    this.present(data);
+    if (job !== this.job) return false;
+    await opts.beforePresent?.();
+    if (job !== this.job) return false;
+    this.present(data, opts);
+    return true;
   }
 
-  private present(data: RepoData): void {
+  private go(input: string | RepoRef | null): void {
+    if (this.router) this.router.go(input);
+    else void (input === null ? this.openDemo() : this.open(input));
+  }
+
+  private present(data: RepoData, opts: PresentOpts = {}): void {
     this.depsAbort?.abort();
     this.resetSelection();
     this.loader.update({ stage: 'layout', message: 'Laying out the city…', fraction: 0.5 });
-    this.city.setData(data);
+    const { controls } = this.world;
+    controls.enabled = true;
+    controls.autoRotate = false;
+    this.city.setData(data, { morph: !!opts.morph, camera: !opts.morph });
+    if (opts.morph) void this.rig.fly(this.homeView(), 2.4);
+    gsap.to(this.world.shift, { x: 0, y: 0, duration: dur(1.2), ease: 'power3.out' });
+    gsap.to(this.world.camera, { zoom: 1, duration: dur(1.2), onUpdate: () => this.world.camera.updateProjectionMatrix() });
     const L = this.city.layout!;
     this.search.setData(L, data.churn);
     this.minimap.set(L, this.city.colors!);
     this.minimap.setMode(this.modes.current);
     this.hud.setRepo(data);
-    this.hud.show();
-    this.modes.el.hidden = false;
-    this.minimap.el.hidden = false;
-    this.modes.layout();
     this.hud.endDeps();
     this.loader.hide();
-    this.active = true;
     this.crumbClock = 0;
+    this.setChrome(true, opts.morph ? 1.1 : 0.2);
+  }
+
+  /** Show/hide the in-app chrome (HUD, mode control, minimap, labels). Hidden on the landing page. */
+  setChrome(on: boolean, delay = 0): void {
+    this.active = on;
+    this.city.labels.setEnabled(on);
+    const els = [this.hud.el, this.modes.el, this.minimap.el];
+    if (!on) {
+      this.panel.hide();
+      this.tooltip.hide();
+      els.forEach((el) => (el.hidden = true));
+      return;
+    }
+    gsap.delayedCall(delay, () => {
+      if (!this.active) return;
+      els.forEach((el) => {
+        el.hidden = false;
+        gsap.fromTo(el, { opacity: 0 }, { opacity: 1, duration: dur(0.6), clearProps: 'opacity' });
+      });
+      this.modes.layout();
+    });
   }
 
   private async mapDeps(data: RepoData, job: number): Promise<void> {
@@ -157,7 +206,7 @@ export class App {
       data.depsAnalyzed = res.analyzed;
       this.city.setDeps(res.deps);
       this.hud.setRepo(data);
-      if (res.deps.length) toast(`Mapped ${res.deps.length.toLocaleString()} imports. Hover a building to see its roads.`);
+      if (res.deps.length && this.active) toast(`Mapped ${res.deps.length.toLocaleString()} imports. Hover a building to see its roads.`);
     } finally {
       if (job === this.job) this.hud.endDeps();
     }

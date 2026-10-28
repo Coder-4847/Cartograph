@@ -45,7 +45,9 @@ export class Loader {
     host.append(this.el);
   }
 
-  show(message = 'Starting…'): void {
+  /** `clear` keeps the 3D scene visible behind the text (used during the landing dive). */
+  show(message = 'Starting…', tone: 'solid' | 'clear' = 'solid'): void {
+    this.el.classList.toggle('clear', tone === 'clear');
     this.el.hidden = false;
     this.el.classList.add('on');
     this.msg.textContent = message;

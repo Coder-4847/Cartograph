@@ -1,6 +1,7 @@
 import { FetchError, type RepoRef } from '../types.ts';
 
-const SEG = /^[A-Za-z0-9._-]+$/;
+const OWNER = /^[A-Za-z0-9-]+$/; // GitHub logins have no dots, which also rejects other hosts
+const REPO = /^[A-Za-z0-9._-]+$/;
 
 /** Accepts `owner/repo`, github.com URLs (incl. /tree/<branch>) and git URLs. */
 export function parseRepo(input: string): RepoRef {
@@ -9,7 +10,7 @@ export function parseRepo(input: string): RepoRef {
   s = s.replace(/^git@github\.com:/i, 'github.com/').replace(/^https?:\/\//i, '').replace(/^www\./i, '');
   s = s.replace(/^github\.com\//i, '').replace(/[?#].*$/, '').replace(/\.git$/i, '').replace(/\/+$/, '');
   const [owner, repo, kind, ...rest] = s.split('/');
-  if (!owner || !repo || !SEG.test(owner) || !SEG.test(repo)) {
+  if (!owner || !repo || !OWNER.test(owner) || !REPO.test(repo)) {
     throw new FetchError('invalid-url', `“${input.trim()}” doesn’t look like a GitHub repository. Try owner/repo.`);
   }
   const ref = kind === 'tree' && rest.length ? decodeURIComponent(rest.join('/')) : undefined;

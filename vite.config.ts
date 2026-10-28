@@ -10,7 +10,8 @@ export default defineConfig({
       output: {
         manualChunks: {
           three: ['three'],
-          gsap: ['gsap', 'gsap/ScrollTrigger'],
+          gsap: ['gsap'],
+          scrolltrigger: ['gsap/ScrollTrigger'],
         },
       },
     },

@@ -52,7 +52,10 @@ export class City {
    * Show a repository. With `morph`, the current buildings reshape into the new ones
    * instead of the city rising from the ground.
    */
-  setData(data: RepoData, opts: { morph?: boolean; camera?: boolean } = {}): void {
+  setData(
+    data: RepoData,
+    opts: { morph?: boolean; camera?: boolean; tweakHome?: (home: City['home']) => void } = {},
+  ): void {
     const morph = !!opts.morph && !!this.layout;
     this.data = data;
     const layout = buildLayout(data.files);
@@ -73,6 +76,7 @@ export class City {
     const view = this.world.frame(layout.width, layout.depth, layout.maxH, false);
     this.home.position.copy(view.position);
     this.home.target.copy(view.target);
+    opts.tweakHome?.(this.home);
     this.play(morph, opts.camera !== false);
   }
 

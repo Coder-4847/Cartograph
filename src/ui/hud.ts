@@ -1,6 +1,5 @@
 import { githubUrl, repoName } from '../api/index.ts';
 import type { RepoData } from '../types.ts';
-import { dur, gsap } from '../motion.ts';
 import { h } from './dom.ts';
 
 const GEAR =
@@ -34,15 +33,6 @@ export class Hud {
     this.actions.append(help, gear);
     this.el.hidden = true;
     document.body.append(this.el);
-  }
-
-  show(): void {
-    this.el.hidden = false;
-    gsap.fromTo(this.el, { opacity: 0, y: -8 }, { opacity: 1, y: 0, duration: dur(0.6), ease: 'power3.out' });
-  }
-
-  hide(): void {
-    this.el.hidden = true;
   }
 
   setRepo(data: RepoData): void {

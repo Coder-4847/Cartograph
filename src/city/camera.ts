@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import type { Building, DirNode } from '../layout/treemap.ts';
 import { dur, gsap } from '../motion.ts';
-import type { World } from './world.ts';
+import { BASE_FOV, type World } from './world.ts';
 
 export interface View {
   target: THREE.Vector3;
@@ -97,7 +97,7 @@ export class Rig {
 
   viewForDir(d: DirNode, tallest = 0): View {
     const { camera } = this.world;
-    const tanV = Math.tan((camera.fov * Math.PI) / 360);
+    const tanV = Math.tan((BASE_FOV * Math.PI) / 360);
     const tanH = tanV * Math.min(1.6, camera.aspect);
     const dist = Math.max((d.w / 2) / tanH, (d.d / 2) / (tanV * 1.15)) * 1.2 + tallest * 0.9;
     return this.viewAt(new THREE.Vector3(d.x + d.w / 2, 0, d.z + d.d / 2), Math.max(14, dist));

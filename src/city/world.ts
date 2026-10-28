@@ -2,12 +2,14 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
 export const BG = 0x07080a;
+/** Resting field of view. Transitions punch it up and back; framing always uses this one. */
+export const BASE_FOV = 38;
 
 /** Owns the renderer, camera, controls and the frame loop. One instance for the whole page. */
 export class World {
   readonly renderer: THREE.WebGLRenderer;
   readonly scene = new THREE.Scene();
-  readonly camera = new THREE.PerspectiveCamera(38, 1, 0.5, 4000);
+  readonly camera = new THREE.PerspectiveCamera(BASE_FOV, 1, 0.5, 4000);
   readonly controls: OrbitControls;
   readonly clock = new THREE.Clock();
   /** Pixel offset of the scene's centre (used to keep a building clear of the side panel). */
@@ -77,7 +79,7 @@ export class World {
   /** Place the camera so a w×d city fits the view. */
   frame(width: number, depth: number, maxH = 16, apply = true): { position: THREE.Vector3; target: THREE.Vector3; dist: number } {
     const r = Math.hypot(width, depth) * 0.5 + maxH * 0.5;
-    const tanV = Math.tan((this.camera.fov * Math.PI) / 360);
+    const tanV = Math.tan((BASE_FOV * Math.PI) / 360);
     // fit both ways so portrait phones see the whole city too
     const dist = Math.max((r / tanV) * 0.92, (r / (tanV * this.camera.aspect)) * 0.8);
     const position = new THREE.Vector3(dist * 0.5, dist * 0.6, dist * 0.8);

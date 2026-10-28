@@ -29,11 +29,6 @@ export class World {
     this.controls.screenSpacePanning = false;
     this.controls.touches = { ONE: THREE.TOUCH.ROTATE, TWO: THREE.TOUCH.DOLLY_PAN };
 
-    this.scene.add(new THREE.HemisphereLight(0xb4bcff, 0x202430, 2.2));
-    const sun = new THREE.DirectionalLight(0xffffff, 1.6);
-    sun.position.set(-60, 90, 40);
-    this.scene.add(sun);
-
     new ResizeObserver(() => this.resize()).observe(canvas.parentElement ?? canvas);
     this.resize();
   }
@@ -67,14 +62,20 @@ export class World {
   }
 
   /** Place the camera so a w×d city fits the view. */
-  frame(width: number, depth: number, maxH = 16): void {
-    const r = Math.max(width, depth) * 0.5 + maxH;
-    const dist = r / Math.tan((this.camera.fov * Math.PI) / 360) * 0.95;
-    this.controls.target.set(0, 0, 0);
-    this.camera.position.set(dist * 0.55, dist * 0.62, dist * 0.78);
-    this.controls.maxDistance = dist * 3;
-    this.camera.far = dist * 8;
+  frame(width: number, depth: number, maxH = 16, apply = true): { position: THREE.Vector3; target: THREE.Vector3; dist: number } {
+    const r = Math.hypot(width, depth) * 0.5 + maxH * 0.5;
+    const dist = (r / Math.tan((this.camera.fov * Math.PI) / 360)) * (this.camera.aspect < 1 ? 1.5 : 0.92);
+    const position = new THREE.Vector3(dist * 0.5, dist * 0.6, dist * 0.8);
+    const target = new THREE.Vector3(0, 0, 0);
+    (this.scene.fog as THREE.FogExp2).density = 1.05 / (dist * 2.6);
+    this.controls.maxDistance = dist * 2.4;
+    this.camera.far = dist * 10;
     this.camera.updateProjectionMatrix();
-    this.controls.update();
+    if (apply) {
+      this.camera.position.copy(position);
+      this.controls.target.copy(target);
+      this.controls.update();
+    }
+    return { position, target, dist };
   }
 }

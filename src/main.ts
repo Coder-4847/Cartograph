@@ -8,6 +8,7 @@ import { FetchError } from './types.ts';
 
 const world = new World(document.getElementById('stage') as HTMLCanvasElement);
 const city = new City(world);
+(window as unknown as { __city: City }).__city = city;
 const loader = new Loader(document.body);
 world.start();
 

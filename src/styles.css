@@ -115,3 +115,19 @@ button, input { font: inherit; color: inherit; }
 .loader-steps li { transition: color 0.3s; }
 .loader-steps li[data-state='active'] { color: var(--text); }
 .loader-steps li[data-state='done'] { color: var(--accent); }
+
+/* ---------- district labels ---------- */
+.labels { position: fixed; inset: 0; pointer-events: none; z-index: 2; overflow: hidden; transition: opacity 0.4s var(--ease); }
+.label {
+  position: absolute;
+  left: 0;
+  top: 0;
+  white-space: nowrap;
+  font-size: 11px;
+  font-weight: 550;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(236, 238, 241, 0.62);
+  text-shadow: 0 1px 8px rgba(7, 8, 10, 0.95), 0 0 2px rgba(7, 8, 10, 0.9);
+  will-change: transform, opacity;
+}

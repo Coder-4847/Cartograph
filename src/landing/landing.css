@@ -142,6 +142,9 @@ kbd { font: 500 12px var(--font); padding: 2px 7px; border-radius: 6px; border: 
 .cta .repo-form { width: min(600px, 100%); }
 .footer { display: flex; flex-wrap: wrap; gap: 12px 28px; justify-content: space-between; padding: 28px clamp(20px, 6vw, 96px) max(28px, env(safe-area-inset-bottom)); border-top: 1px solid var(--line); color: var(--muted); font-size: 13px; background: rgba(7, 8, 10, 0.85); }
 .footer a:hover { color: var(--text); }
+.link-btn { all: unset; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+.link-btn:hover { color: var(--text); }
+.link-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 @media (max-width: 900px) {
   .steps, .cards { grid-template-columns: 1fr; }
@@ -156,3 +159,5 @@ kbd { font: 500 12px var(--font); padding: 2px 7px; border-radius: 6px; border: 
   .art-build b, .r-fg, .finger, .art-heat i, .art-treemap i, .art-roads .road, .art-local .pkt, .scroll-cue span, .caret, .art-orbit .orb { animation: none; }
   .art-build b { transform: none; } .r-fg { stroke-dashoffset: 0; }
 }
+
+.no-webgl #stage, .no-webgl .veil { display: none; }

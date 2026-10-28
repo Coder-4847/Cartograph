@@ -17,6 +17,11 @@ export class World {
   private appliedShift = { x: 0, y: 0 };
   private frameCbs = new Set<(dt: number, t: number) => void>();
   private raf = 0;
+  /** Upper bound for the pixel ratio; the adaptive loop never exceeds it. */
+  private maxPR = Math.min(window.devicePixelRatio || 1, 2);
+  private pr = this.maxPR;
+  private slow = 0;
+  private fast = 0;
 
   constructor(readonly canvas: HTMLCanvasElement) {
     this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
@@ -48,6 +53,7 @@ export class World {
       this.raf = requestAnimationFrame(tick);
       const dt = Math.min(this.clock.getDelta(), 0.1);
       const t = this.clock.elapsedTime;
+      this.adapt(dt);
       this.controls.update();
       if (this.shift.x !== this.appliedShift.x || this.shift.y !== this.appliedShift.y) this.applyShift();
       this.frameCbs.forEach((cb) => cb(dt, t));
@@ -57,11 +63,31 @@ export class World {
     tick();
   }
 
+  /** Trade resolution for smoothness: sustained slow frames lower the pixel ratio, fast ones restore it. */
+  private adapt(dt: number): void {
+    if (dt > 1 / 30) {
+      this.slow++;
+      this.fast = 0;
+    } else if (dt < 1 / 50) {
+      this.fast++;
+      this.slow = 0;
+    }
+    if (this.slow > 20 && this.pr > 0.55) {
+      this.pr = Math.max(0.55, this.pr * 0.8);
+      this.slow = 0;
+      this.resize();
+    } else if (this.fast > 240 && this.pr < this.maxPR) {
+      this.pr = Math.min(this.maxPR, this.pr * 1.15);
+      this.fast = 0;
+      this.resize();
+    }
+  }
+
   resize(): void {
     const host = this.canvas.parentElement ?? this.canvas;
     const w = Math.max(1, host.clientWidth);
     const h = Math.max(1, host.clientHeight);
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    this.renderer.setPixelRatio(this.pr);
     this.renderer.setSize(w, h, false);
     this.camera.aspect = w / h;
     this.camera.updateProjectionMatrix();

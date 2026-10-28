@@ -171,6 +171,7 @@ export class Landing implements Router {
       form.querySelector('[data-demo]')?.addEventListener('click', () => this.go(null));
       input.addEventListener('input', () => this.formError(form, ''));
     });
+    document.querySelector('[data-settings]')?.addEventListener('click', () => this.app.settings.open());
     document.querySelectorAll<HTMLElement>('[data-repo]').forEach((b) =>
       b.addEventListener('click', () => this.go(b.dataset.repo!)),
     );
@@ -275,7 +276,7 @@ export class Landing implements Router {
     Object.assign(this.look, { dim: 1, veil: 1, shiftX: 0, shiftY: 0, zoom: 1, mode: 0, hot: 0.4 });
     this.enterOrbit();
     this.apply();
-    gsap.to(this.root, { opacity: 1, duration: dur(0.6), clearProps: 'opacity' });
+    gsap.fromTo(this.root, { opacity: 0 }, { opacity: 1, duration: dur(0.6), clearProps: 'opacity' });
     if (!reducedMotion()) this.scroll();
     ScrollTrigger.refresh();
   }

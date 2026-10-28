@@ -16,7 +16,7 @@ Folders are districts · files are buildings · height is size · colour is rece
 
 - **Landing page with a living hero**: a procedurally generated city orbits behind the headline. Submitting a repo dives the camera into it and the buildings **morph** into the real repository's city.
 - **Squarified treemap**: folders nest into districts; single-child folder chains (`src/main/java`) collapse into one district.
-- **Thousands of buildings at 60 fps**: one `InstancedBufferGeometry` draw call; position, size, colour per mode and the rise/morph animation are resolved in the vertex shader.
+- **Thousands of buildings in one draw call**: a single `InstancedBufferGeometry`; position, size, colour per mode and the rise/morph animation are resolved in the vertex shader.
 - **Three modes** (segmented control, keys `1` `2` `3`): **Overview**, **Churn heatmap**, **Hotspots** (large *and* frequently changed files pulse).
 - **Dependency roads**: animated arcs, drawn only for the hovered or selected building (outgoing and incoming).
 - **Gestures that work on mouse and touch**
@@ -113,6 +113,12 @@ Made without asking, as requested:
 2. Push to `main`. The workflow sets `VITE_BASE=/<repo-name>/` (Vite `base`) and `VITE_SITE_URL` (absolute `og:image`/canonical URLs).
 
 Locally `VITE_BASE` defaults to `/`; to test a Pages build: `VITE_BASE=/cartograph/ npm run build && npm run preview`.
+
+## Performance notes
+
+- The landing copy is static HTML with a preloaded font, so it paints before any script runs. three.js, the app and the landing choreography load afterwards in separate chunks, and are skipped entirely if the browser has no WebGL (the page then degrades to a static landing).
+- Buildings, districts, roads and the ground are four draw calls; animation and mode changes cost no CPU per building. The renderer lowers its pixel ratio when frames run slow and restores it when they recover.
+- Lighthouse on the static landing (WebGL off) scores 100 / 100 / 100 / 100. With WebGL on under software rendering (SwiftShader) the audit does not settle, so real-GPU numbers need to be measured on a normal machine.
 
 ## Limitations
 

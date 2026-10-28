@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { plateTop, type CityLayout, type DirNode } from '../layout/treemap.ts';
+import { dur, gsap } from '../motion.ts';
 import { ACCENT } from './palette.ts';
 
 const THICK = 0.5;
@@ -12,11 +13,40 @@ export class Districts {
   private layout: CityLayout | null = null;
   private baseColors: THREE.Color[] = [];
   private tint = new Map<number, number>();
+  private marks = {
+    hover: this.makeMark(0.35),
+    focus: this.makeMark(0.9),
+  };
   private plateMat = new THREE.MeshBasicMaterial({ fog: true, transparent: true, opacity: 0 });
   private lineMat = new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0, fog: true });
 
   constructor(scene: THREE.Scene) {
     scene.add(this.group);
+    this.group.add(this.marks.hover.line, this.marks.focus.line);
+  }
+
+  private makeMark(opacity: number) {
+    const geo = new THREE.BufferGeometry().setFromPoints(Array.from({ length: 5 }, () => new THREE.Vector3()));
+    const mat = new THREE.LineBasicMaterial({ color: ACCENT, transparent: true, opacity: 0, depthTest: false, fog: false });
+    const line = new THREE.Line(geo, mat);
+    line.frustumCulled = false;
+    line.renderOrder = 4;
+    return { line, mat, geo, opacity };
+  }
+
+  /** Accent outline around a district: `hover` is a faint hint, `focus` the entered district. */
+  mark(kind: 'hover' | 'focus', dir: DirNode | null): void {
+    const m = this.marks[kind];
+    if (!dir || !this.layout) {
+      gsap.to(m.mat, { opacity: 0, duration: dur(0.25) });
+      return;
+    }
+    const y = plateTop(dir.depth, this.layout.maxDepth) + 0.05;
+    const p = m.geo.getAttribute('position') as THREE.BufferAttribute;
+    const pts = [[dir.x, dir.z], [dir.x + dir.w, dir.z], [dir.x + dir.w, dir.z + dir.d], [dir.x, dir.z + dir.d], [dir.x, dir.z]];
+    pts.forEach(([x, z], i) => p.setXYZ(i, x, y, z));
+    p.needsUpdate = true;
+    gsap.to(m.mat, { opacity: m.opacity, duration: dur(0.25) });
   }
 
   /** Fade factor 0..1 for the whole layer (used by the intro). */

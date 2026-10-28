@@ -30,7 +30,7 @@ const VERT = /* glsl */ `
     vec3 tan = normalize(2.0 * it * (c - aA) + 2.0 * t * (aB - c));
     vec3 toCam = cameraPosition - p;
     vec3 side = normalize(cross(tan, toCam));
-    float w = uPx * length(toCam) * 1.6;
+    float w = uPx * length(toCam) * 1.25;
     p += side * aSide * w;
     vT = t;
     vSide = aSide;
@@ -60,7 +60,7 @@ const FRAG = /* glsl */ `
     float ends = smoothstep(0.0, 0.05, vT) * (1.0 - smoothstep(0.93, 1.0, vT));
     float head = smoothstep(grow - 0.1, grow, vT) * (1.0 - vGrow);
     vec3 col = vKind > 0.5 ? mix(uAccent, vec3(1.0), 0.3) : uAccent;
-    float a = across * ends * pulse * uFade * 0.5 + head * across * uFade * 0.8;
+    float a = across * ends * pulse * uFade * 0.36 + head * across * uFade * 0.8;
     gl_FragColor = vec4(col, a);
     #include <colorspace_fragment>
   }

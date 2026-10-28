@@ -9,6 +9,7 @@ const GEAR =
 /** Top bar: repo identity + live stats, dependency progress, and the settings/help buttons. */
 export class Hud {
   readonly el: HTMLElement;
+  readonly info: HTMLElement;
   private title = h('a', { class: 'repo-title', target: '_blank', rel: 'noopener noreferrer' });
   private stats = h('span', { class: 'repo-stats' });
   private note = h('span', { class: 'repo-note' });
@@ -19,7 +20,7 @@ export class Hud {
 
   constructor(handlers: { settings: () => void; help: () => void; home?: () => void }) {
     this.pill.append(this.pillText, h('div', { class: 'deps-bar' }, this.bar));
-    const info = h('div', { class: 'repo-info' }, this.title, this.stats, this.note, this.pill);
+    const info = (this.info = h('div', { class: 'repo-info' }, this.title, this.stats, this.note, this.pill));
     if (handlers.home) {
       const back = h('button', { class: 'icon-btn', 'aria-label': 'Back to start', title: 'Back to start', onClick: handlers.home });
       back.append(h('span', { text: '←', 'aria-hidden': 'true' }));

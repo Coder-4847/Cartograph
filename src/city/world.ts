@@ -10,6 +10,9 @@ export class World {
   readonly camera = new THREE.PerspectiveCamera(38, 1, 0.5, 4000);
   readonly controls: OrbitControls;
   readonly clock = new THREE.Clock();
+  /** Pixel offset of the scene's centre (used to keep a building clear of the side panel). */
+  readonly shift = { x: 0, y: 0 };
+  private appliedShift = { x: 0, y: 0 };
   private frameCbs = new Set<(dt: number, t: number) => void>();
   private raf = 0;
 
@@ -44,6 +47,7 @@ export class World {
       const dt = Math.min(this.clock.getDelta(), 0.1);
       const t = this.clock.elapsedTime;
       this.controls.update();
+      if (this.shift.x !== this.appliedShift.x || this.shift.y !== this.appliedShift.y) this.applyShift();
       this.frameCbs.forEach((cb) => cb(dt, t));
       this.renderer.render(this.scene, this.camera);
     };
@@ -59,12 +63,23 @@ export class World {
     this.renderer.setSize(w, h, false);
     this.camera.aspect = w / h;
     this.camera.updateProjectionMatrix();
+    this.appliedShift = { x: NaN, y: NaN };
+  }
+
+  private applyShift(): void {
+    const w = this.canvas.clientWidth;
+    const h = this.canvas.clientHeight;
+    this.appliedShift = { ...this.shift };
+    if (Math.abs(this.shift.x) < 0.5 && Math.abs(this.shift.y) < 0.5) this.camera.clearViewOffset();
+    else this.camera.setViewOffset(w, h, this.shift.x, this.shift.y, w, h);
   }
 
   /** Place the camera so a w×d city fits the view. */
   frame(width: number, depth: number, maxH = 16, apply = true): { position: THREE.Vector3; target: THREE.Vector3; dist: number } {
     const r = Math.hypot(width, depth) * 0.5 + maxH * 0.5;
-    const dist = (r / Math.tan((this.camera.fov * Math.PI) / 360)) * (this.camera.aspect < 1 ? 1.5 : 0.92);
+    const tanV = Math.tan((this.camera.fov * Math.PI) / 360);
+    // fit both ways so portrait phones see the whole city too
+    const dist = Math.max((r / tanV) * 0.92, (r / (tanV * this.camera.aspect)) * 0.8);
     const position = new THREE.Vector3(dist * 0.5, dist * 0.6, dist * 0.8);
     const target = new THREE.Vector3(0, 0, 0);
     (this.scene.fog as THREE.FogExp2).density = 1.05 / (dist * 2.6);

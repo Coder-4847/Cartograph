@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import type { RepoData } from '../types.ts';
-import { buildLayout, type Building, type CityLayout } from '../layout/treemap.ts';
+import { buildLayout, type Building, type CityLayout, type DirNode } from '../layout/treemap.ts';
 import { dur, gsap, reducedMotion } from '../motion.ts';
 import { Buildings } from './buildings.ts';
 import { Districts } from './districts.ts';
@@ -22,6 +22,7 @@ export class City {
   index: BuildingIndex | null = null;
   hovered: Building | null = null;
   selected: Building | null = null;
+  focused: DirNode | null = null;
   mode: Mode = 'overview';
   private out: number[][] = [];
   private inn: number[][] = [];
@@ -61,7 +62,9 @@ export class City {
     this.districts.set(layout);
     this.labels.set(layout);
     this.index = new BuildingIndex(layout);
-    this.hovered = this.selected = null;
+    this.hovered = this.selected = this.focused = null;
+    this.buildings.setDimMask(null);
+    this.buildings.uniforms.uFocus.value = 0;
     this.roads.hide();
     this.setDeps(data.deps);
     this.applyMode(this.mode, false);
@@ -153,6 +156,22 @@ export class City {
   }
 
   // -------------------------------------------------------------- interaction
+
+  /** Enter a district: everything outside it recedes. `null` leaves. */
+  focusDir(d: DirNode | null): void {
+    if (d && !d.path) d = null; // the root is "everything"
+    this.focused = d;
+    const u = this.buildings.uniforms.uFocus;
+    if (d) {
+      const prefix = d.path + '/';
+      const b = this.layout!.buildings;
+      this.buildings.setDimMask((i) => !b[i].path.startsWith(prefix));
+      gsap.to(u, { value: 1, duration: dur(0.7), ease: 'power2.out' });
+    } else {
+      gsap.to(u, { value: 0, duration: dur(0.6), ease: 'power2.out', onComplete: () => this.buildings.setDimMask(null) });
+    }
+    this.districts.mark('focus', d);
+  }
 
   setHovered(b: Building | null): void {
     if (b === this.hovered) return;

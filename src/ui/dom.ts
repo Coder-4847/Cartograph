@@ -38,3 +38,11 @@ export function fmtAgo(ms: number): string {
   if (s < 86400 * 365) return `${Math.round(s / 86400 / 30)}mo ago`;
   return `${(s / 86400 / 365).toFixed(1)}y ago`;
 }
+
+/** replaceChildren that tolerates null/false entries. */
+export function fill(el: Element, ...kids: (Node | string | null | undefined | false)[]): void {
+  el.replaceChildren(...kids.filter((k): k is Node | string => !!k));
+}
+
+/** Keep the end of a long path ("…/src/node/utils") instead of letting CSS clip it. */
+export const tailPath = (p: string, max = 44): string => (p.length > max ? '…' + p.slice(p.length - max + 1) : p);
